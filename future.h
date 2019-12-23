@@ -13,6 +13,8 @@ typedef struct future {
     callable_t callable;
     void *res;
     size_t *res_size;
+    pthread_mutex_t mutex;
+    pthread_cond_t for_res;
 
 } future_t;
 
