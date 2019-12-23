@@ -5,22 +5,18 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdbool.h>
-
-
-typedef struct runnable {
-  void (*function)(void *, size_t);
-  void *arg;
-  size_t argsz;
-} runnable_t;
+#include "queue.h"
 
 typedef struct thread_pool {
     size_t size;
     pthread_t *threads;
     pthread_mutex_t mutex;
     pthread_cond_t for_task;
+    bool end;
 
-    int task_count;
-    runnable_t *tasks;
+    pthread_attr_t attr;
+
+    queue_t tasks;
 
 } thread_pool_t;
 

@@ -10,6 +10,9 @@ typedef struct callable {
 } callable_t;
 
 typedef struct future {
+    callable_t callable;
+    void *res;
+    size_t *res_size;
 
 } future_t;
 
