@@ -8,11 +8,13 @@
 void function(void *args, size_t argsz __attribute__((unused))) {
     future_t *future = args;
 
+    try(pthread_mutex_lock(&future->mutex));
     future->res = future->callable.function(future->callable.arg,
                                             future->callable.argsz,
                                             &future->res_size);
 
     try(pthread_cond_signal(&future->for_res));
+    try(pthread_mutex_unlock(&future->mutex));
 }
 
 int async(thread_pool_t *pool, future_t *future, callable_t callable) {
