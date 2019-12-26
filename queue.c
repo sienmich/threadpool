@@ -1,21 +1,20 @@
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "queue.h"
-
+#include "err.h"
 
 void queue_init(queue_t *queue) {
     queue->next = queue;
     queue->prev = queue;
-//    queue->data = NULL;
 }
 
 int queue_add(queue_t *queue, runnable_t data) {
     queue_t *new_node;
-    if (!(new_node = malloc(sizeof(queue_t))))
-        return 1;
+    new_node = safe_malloc(sizeof(queue_t));
 
-    new_node->data = data;  //TODO: deep copy?
+    new_node->data = data;
 
     new_node->prev = queue;
     new_node->next = queue->next;
@@ -26,6 +25,8 @@ int queue_add(queue_t *queue, runnable_t data) {
 }
 
 runnable_t queue_get(queue_t *queue) {
+    assert(!queue_empty(queue));
+
     queue_t *node = queue->prev;
 
     queue->prev = queue->prev->prev;

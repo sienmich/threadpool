@@ -8,9 +8,10 @@
 #include <string.h>
 #include "err.h"
 
+
 extern int sys_nerr;
 
-void syserr(int bl, const char *fmt, ...)  
+void syserr(int bl, const char *fmt, ...)
 {
   va_list fmt_args;
 
@@ -35,4 +36,11 @@ void fatal(const char *fmt, ...)
 
   fprintf(stderr,"\n");
   exit(1);
+}
+
+void *safe_malloc(size_t size) {
+    void *res = malloc(size);
+    if (!res)
+        fatal("malloc failed");
+    return res;
 }
