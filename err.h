@@ -8,7 +8,7 @@ do {\
         syserr(err, #expr" failed", __func__, __FILE__, __LINE__);\
 } while(0)
 
-#define try_no_exit(sth) do {int err; if((err = sth) != 0) return err;} while(0)
+//#define try_no_exit(sth) do {int err; if((err = sth) != 0) return err;} while(0)
 
 /* print system call error message and terminate */
 void

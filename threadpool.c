@@ -3,6 +3,11 @@
 #include "threadpool.h"
 #include "err.h"
 
+// TODO: komentarze
+// TODO: obsługa errorów
+// TODO: obsługa "po otrzymaniu sygnału (SIGINT)"
+// TODO: czy destroy powinien czekać na zakończenie zadań?
+
 void *worker(void *data) {
     thread_pool_t *pool = data;
     while (!pool->end) {
@@ -57,7 +62,7 @@ void thread_pool_destroy(struct thread_pool *pool) {
 
 //    for (size_t i = 0; i < pool->size; ++i)
 //        if ((err = pthread_cancel(pool->threads[i])) != 0)
-//            syserr (err, "pthread_cancel failed");
+//            sys_err (err, "pthread_cancel failed");
 
     try(pthread_cond_destroy(&pool->for_task));
     try(pthread_mutex_destroy(&pool->mutex));
