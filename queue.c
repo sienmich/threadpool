@@ -1,6 +1,4 @@
 #include <stdlib.h>
-#include <stdbool.h>
-#include <assert.h>
 
 #include "queue.h"
 #include "err.h"
@@ -25,8 +23,6 @@ int queue_add(queue_t *queue, runnable_t data) {
 }
 
 runnable_t queue_get(queue_t *queue) {
-    assert(!queue_empty(queue));
-
     queue_t *node = queue->prev;
 
     queue->prev = queue->prev->prev;
@@ -37,7 +33,7 @@ runnable_t queue_get(queue_t *queue) {
     return res;
 }
 
-bool queue_empty(queue_t *queue) {
+_Bool queue_empty(queue_t *queue) {
     return queue->next == queue;
 }
 

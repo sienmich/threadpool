@@ -1,5 +1,3 @@
-#include <assert.h>
-
 #include "future.h"
 #include "threadpool.h"
 #include "runnable.h"
@@ -47,6 +45,5 @@ void *await(future_t *future) {
 
     try(pthread_mutex_unlock(&future->mutex));
 
-    assert(future->res);
     return future->res;
 }

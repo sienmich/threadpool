@@ -1,10 +1,7 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
-#include <stddef.h>
 #include <pthread.h>
-#include <semaphore.h>
-#include <stdbool.h>
 #include "queue.h"
 
 typedef struct thread_pool {
@@ -12,7 +9,7 @@ typedef struct thread_pool {
     pthread_t *threads;
     pthread_mutex_t mutex;
     pthread_cond_t for_task;
-    bool end;
+    _Bool end;
 
     pthread_attr_t attr;
 

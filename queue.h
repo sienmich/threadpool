@@ -15,7 +15,7 @@ int queue_add(queue_t *queue, runnable_t data);
 
 runnable_t queue_get(queue_t *queue);
 
-bool queue_empty(queue_t *queue);
+_Bool queue_empty(queue_t *queue);
 
 void queue_destroy(queue_t *queue);
 

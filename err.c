@@ -1,41 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <stdarg.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <string.h>
-#include "err.h"
 
-
-extern int sys_nerr;
-
-void syserr(int bl, const char *fmt, ...)
-{
-  va_list fmt_args;
-
-  fprintf(stderr, "ERROR: ");
-
-  va_start(fmt_args, fmt);
-  vfprintf(stderr, fmt, fmt_args);
-  va_end (fmt_args);
-  fprintf(stderr," (%d; %s)\n", bl, strerror(bl));
-  exit(1);
+void
+syserr(int bl, const char *fmt, const char *func, const char *file, int line) {
+    fprintf(stderr, "ERROR: %s (returned %d), at %s in %s, line %d", fmt, bl,
+            func, file, line);
+    exit(1);
 }
 
-void fatal(const char *fmt, ...)
-{
-  va_list fmt_args;
-
-  fprintf(stderr, "ERROR: ");
-
-  va_start(fmt_args, fmt);
-  vfprintf(stderr, fmt, fmt_args);
-  va_end (fmt_args);
-
-  fprintf(stderr,"\n");
-  exit(1);
+void fatal(const char *fmt) {
+    fprintf(stderr, "ERROR: %s", fmt);
+    exit(1);
 }
 
 void *safe_malloc(size_t size) {

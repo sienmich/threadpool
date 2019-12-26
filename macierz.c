@@ -1,7 +1,4 @@
-#include <stddef.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 
 #include "threadpool.h"
 #include "future.h"
@@ -10,7 +7,11 @@
 void *calculate(void *arg, size_t args __attribute__((unused)), size_t *res_size) {
     *res_size = sizeof(int);
 
-    usleep(1000 * ((int *) arg)[1]);
+    int ms = ((int *) arg)[1];
+    int s = ms / 1000;
+    ms %= 1000;
+
+    try(nanosleep((const struct timespec[]){{s, 1000000L * ms}}, NULL));
 
     return arg;
 }

@@ -1,11 +1,7 @@
-#include <pthread.h>
-#include <stddef.h>
 #include <stdlib.h>
 
 #include "threadpool.h"
-#include "queue.h"
 #include "err.h"
-
 
 void *worker(void *data) {
     thread_pool_t *pool = data;
@@ -37,7 +33,7 @@ int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
 
     pool->size = num_threads;
     pool->threads = 0;
-    pool->end = false;
+    pool->end = 0;
 
     queue_init(&pool->tasks);
 
@@ -51,7 +47,7 @@ int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
 }
 
 void thread_pool_destroy(struct thread_pool *pool) {
-    pool->end = true;
+    pool->end = 1;
 
     for (size_t i = 0; i < pool->size; ++i)
         try(pthread_cond_signal(&pool->for_task));

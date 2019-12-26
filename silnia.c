@@ -1,16 +1,11 @@
-#include <stddef.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
+#include <stdlib.h>
 
 #include "threadpool.h"
 #include "future.h"
 #include "err.h"
 
-
 void *calculate(void * arg, size_t argsz, size_t *res_size) {
-    assert(argsz == 2 * sizeof(int));
-
     // arg[0] = n!, arg[1] = n
     int *tmp = arg;
     tmp[0] *= ++tmp[1];
