@@ -1,23 +1,8 @@
-/** @file
- * Implementacja interfejsu klasy wektor - dynamicznie alokowanej tablicy
- *
- * @author Michał Siennicki <ms406340@students.mimuw.edu.pl>
- * @copyright Michał Siennicki
- * @date 28.04.2019
- */
-
 #include <stdlib.h>
 #include "vector.h"
 #include "err.h"
 
-/** Alokuje nową pamięć dla wektora.
- * Nie zmienia jego rozmiaru.
- *
- * @param[in,out] vector - wskaźnik na wektor
- * @param[in] newMaxSize - nowy rozmiar alokowanej pamięci
- * @return @p false gdy nie udało się zaalkować pamięci,
- * @p true w przeciwnym przypadku
- */
+/// Allocates new memory for a vector.
 static int reMaxSize(Vector *vector, int newMaxSize) {
     void **tmp = realloc(vector->data, newMaxSize * sizeof(void *));
     if (tmp == NULL && newMaxSize)
@@ -28,12 +13,7 @@ static int reMaxSize(Vector *vector, int newMaxSize) {
     return 0;
 }
 
-
-/** Alokuje dwa razy więcej pamięci na wektor.
- * @param vector - wskaźnik na wektor
- * @return @p false gdy nie udało się zaalkować pamięci,
- * @p true w przeciwnym przypadku
- */
+/// Allocates twice the previous size for new elements.
 static int extend(Vector *vector) {
     if (vector->maxSize == 0)
         return reMaxSize(vector, 1);
@@ -41,12 +21,7 @@ static int extend(Vector *vector) {
         return reMaxSize(vector, vector->maxSize * 2);
 }
 
-/** @brief Dodaje nowy wskaźnik na koniec wektora.
- * @param[in,out] vector - wskaźnik na wektor
- * @param[in] ptr - wskaźnik, który będzie dodany na koniec
- * @return Wartość @p true, jeśli operacja się powiodła.
- * Wartość @p false, jeśli nie udało się zaalokować pamięci.
- */
+/// Adds new element at the end of a vector. Extends it if necessary.
 int pushBack(Vector *vector, void *ptr) {
     if (vector->size == vector->maxSize)
         easy_try(extend(vector));
@@ -54,10 +29,7 @@ int pushBack(Vector *vector, void *ptr) {
     return 0;
 }
 
-/** @brief Usuwa i zwraca ostatni wskaźnik z wektora.
- * @param[in,out] vector - wskaźnik na wektor
- * @return  Ostatni wskaźnik z wektora lub NULL, gdy wektor jest pusty.
- */
+/// Deletes and returns the last element from a vector.
 void *popBack(Vector *vector) {
     if (!vector->size)
         return NULL;
@@ -71,25 +43,14 @@ void *popBack(Vector *vector) {
     return res;
 }
 
-/** @brief Zamienia miejscami dwa elementy wektora.
- * @param[in,out] vector - wskaźnik na wektor
- * @param[in] a - indeks pierwszego elementu
- * @param[in] b - indeks drugiego elementu
- */
-void swapElements(Vector *vector, int a, int b) {
+/// Swaps two elements from a vector.
+static void swapElements(Vector *vector, int a, int b) {
     void *tmp = vector->data[a];
     vector->data[a] = vector->data[b];
     vector->data[b] = tmp;
 }
 
-/** @brief Usuwa z wektora jeden element.
- * Może zmienić kolejność pozostałych.
- * Przegląda po kolei elementy wektora i porównuje je z [ptr].
- * Pierwszy, który będzie równy zamienia z ostatnim i usuwa.
- * Jeśli nie znajdzie równego elementu, nic nie robi.
- * @param[in,out] vector - wskaźnik na wektor
- * @param[in] ptr - wskaźnik, który usuwa z wektora
- */
+/// Deletes an element from a vector.
 void deleteElementFromVector(Vector *vector, void *ptr) {
     for (int i = 0; i < vector->size; i++) {
         if (vector->data[i] == ptr) {

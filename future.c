@@ -4,7 +4,9 @@
 #include "runnable.h"
 #include "err.h"
 
-void eval_future(void *args, size_t argsz __attribute__((unused))) {
+/// Helper function that evaluates the value of a future variable.
+/// Passed as an argument to defer from threadpool.
+static void eval_future(void *args, size_t argsz __attribute__((unused))) {
     future_t *future = args;
 
     try(pthread_mutex_lock(&future->mutex));
@@ -16,7 +18,8 @@ void eval_future(void *args, size_t argsz __attribute__((unused))) {
     try(pthread_mutex_unlock(&future->mutex));
 }
 
-/// korzystajacy z bibklio musi potem zwalniac pamiec i czyscic
+/// Orders a callable task to be calculated on pool and the result will be
+/// stored in the future variable. User is responsible for memory management.
 int async(thread_pool_t *pool, future_t *future, callable_t callable) {
     future->res = NULL;
     future->callable = callable;
@@ -30,12 +33,14 @@ int async(thread_pool_t *pool, future_t *future, callable_t callable) {
     return 0;
 }
 
+/// Helper struct that stores data necessary for map function.
 struct map_args {
     future_t *from;
     void *(*function)(void *, size_t, size_t *);
 };
 
-void* eval_map(void *args, size_t argsz, size_t* ressize) {
+/// Helper function that awaits for a future variable and maps it to a new one.
+static void* eval_map(void *args, size_t argsz, size_t* ressize) {
     struct map_args a = *(struct map_args *)args;
 
     void *res = a.function(await(a.from), argsz, ressize);
@@ -45,14 +50,16 @@ void* eval_map(void *args, size_t argsz, size_t* ressize) {
     return res;
 }
 
+/// Orders a function to be calculated on pool from a future value.
+/// The result will be stored in another future variable.
+/// User is responsible for memory management.
 int map(thread_pool_t *pool, future_t *future, future_t *from,
         void *(*function)(void *, size_t, size_t *)) {
 
     struct map_args *args;
-    args = safe_malloc(sizeof(struct map_args));
+    try_ptr(args = malloc(sizeof(struct map_args)));
     args->from = from;
     args->function = function;
-
 
     try(async(pool, future, (callable_t) {.arg = args,
               .argsz = sizeof(&args), .function = eval_map}));
@@ -60,6 +67,7 @@ int map(thread_pool_t *pool, future_t *future, future_t *from,
     return 0;
 }
 
+/// Waits for a future variable to be calculated and returns it.
 void *await(future_t *future) {
     try(pthread_mutex_lock(&future->mutex));
 

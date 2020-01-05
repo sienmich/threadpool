@@ -1,27 +1,52 @@
 #include <stdlib.h>
+#include <signal.h>
 
 #include "threadpool.h"
 #include "err.h"
 #include "vector.h"
 
-#include <signal.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <memory.h>
-
 // TODO: komentarze
 // TODO: obsługa errorów
 // TODO: P1
 // TODO: P7
-// TODO: P11
 // TODO: P12
 // TODO: P22
-// TODO: P23
-// TODO: P24
-// TODO: P26
 
+/// Variable checking if SIGINT was received.
 static int received_SIGINT = 0;
 
+/// Vector of all pools.
+Vector pools;
+
+/// Bool checking if signal handling was already inited.
+static bool inited = false;
+
+/// Function that destroys all pools.
+static void process_SIGINT(int signo __attribute__((unused))) {
+    received_SIGINT = 1;
+    while (pools.size) {
+        thread_pool_t *pool = pools.data[0];
+        thread_pool_destroy(pool);
+    }
+}
+
+/// Sets up the signal handling.
+static void setup_signal() {
+    sigset_t block_mask;
+    sigemptyset(&block_mask);
+    sigaddset(&block_mask, SIGINT);
+
+    struct sigaction action = {
+            .sa_handler = process_SIGINT,
+            .sa_mask = block_mask,
+            .sa_flags = 0};
+
+    try(sigaction(SIGINT, &action, 0));
+    inited = true;
+}
+
+/// Function that each thread from the pool is running.
+/// It waits for tasks and completes them.
 static void *worker(void *data) {
     thread_pool_t *pool = data;
     while (1) {
@@ -41,37 +66,9 @@ static void *worker(void *data) {
 
         my_task.function(my_task.arg, my_task.argsz);   //running the task
     }
-    return 0;
 }
 
-Vector pools;
-
-void process_SIGINT(int signo __attribute__((unused))) {
-    received_SIGINT = 1;
-
-    while (pools.size) {
-        thread_pool_t *pool = pools.data[0];
-        thread_pool_destroy(pool);
-    }
-}
-
-
-static bool inited = false;
-
-static void setup_signal() {
-    sigset_t block_mask;
-    sigemptyset(&block_mask);
-    sigaddset(&block_mask, SIGINT);
-
-    struct sigaction action = {
-            .sa_handler = process_SIGINT,
-            .sa_mask = block_mask,
-            .sa_flags = 0};
-
-    try(sigaction(SIGINT, &action, 0));
-    inited = true;
-}
-
+/// Initializes a new pool.
 int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
     if (!inited)
         setup_signal();
@@ -87,7 +84,7 @@ int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
     queue_init(&pool->tasks);
 
 
-    pool->threads = safe_malloc(num_threads * sizeof(pthread_t));
+    try_ptr(pool->threads = malloc(num_threads * sizeof(pthread_t)));
 
     for (size_t i = 0; i < pool->size; ++i)
         try(pthread_create(&pool->threads[i], &pool->attr, worker, pool));
@@ -97,6 +94,7 @@ int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
     return 0;
 }
 
+/// Destroys a pool.
 void thread_pool_destroy(struct thread_pool *pool) {
     pool->end = 1;
     deleteElementFromVector(&pools, pool);
@@ -112,9 +110,9 @@ void thread_pool_destroy(struct thread_pool *pool) {
     try(pthread_attr_destroy(&pool->attr));
 
     free(pool->threads);
-    queue_destroy(&pool->tasks);
 }
 
+/// Orders a task to run on a pool.
 int defer(struct thread_pool *pool, runnable_t runnable) {
     try(pool->end);
 

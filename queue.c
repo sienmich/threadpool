@@ -1,16 +1,17 @@
 #include <stdlib.h>
-
 #include "queue.h"
 #include "err.h"
 
+/// Initializes new empty queue.
 void queue_init(queue_t *queue) {
     queue->next = queue;
     queue->prev = queue;
 }
 
+/// Adds new element to the queue.
 int queue_add(queue_t *queue, runnable_t data) {
     queue_t *new_node;
-    new_node = safe_malloc(sizeof(queue_t));
+    try_ptr(new_node = malloc(sizeof(queue_t)));
 
     new_node->data = data;
 
@@ -22,6 +23,7 @@ int queue_add(queue_t *queue, runnable_t data) {
     return 0;
 }
 
+/// Removes and returnes the first element from the queue.
 runnable_t queue_get(queue_t *queue) {
     queue_t *node = queue->prev;
 
@@ -33,11 +35,7 @@ runnable_t queue_get(queue_t *queue) {
     return res;
 }
 
-_Bool queue_empty(queue_t *queue) {
+/// Checks whether queue is empty.
+bool queue_empty(queue_t *queue) {
     return queue->next == queue;
-}
-
-void queue_destroy(queue_t *queue) {
-    while (!queue_empty(queue))
-        queue_get(queue);
 }

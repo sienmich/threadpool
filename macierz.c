@@ -1,9 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "threadpool.h"
 #include "future.h"
 #include "err.h"
 
+/// Function that sleeps arg[1] ms and returns &arg[0].
 void *calculate(void *arg, size_t args __attribute__((unused)), size_t *res_size) {
     *res_size = sizeof(int);
 
@@ -13,7 +15,7 @@ void *calculate(void *arg, size_t args __attribute__((unused)), size_t *res_size
 
     try(nanosleep((const struct timespec[]){{s, 1000000L * ms}}, NULL));
 
-    return arg;
+    return &arg[0];
 }
 
 int main() {
@@ -23,17 +25,17 @@ int main() {
 
     scanf("%d%d", &k, &n);
 
-    matrix = safe_malloc(sizeof(int) * 2 * k * n);
-    res = safe_malloc(sizeof(future_t) * k * n);
+    try_ptr(matrix = malloc(sizeof(int) * 2 * k * n));
+    try_ptr(res = malloc(sizeof(future_t) * k * n));
 
-    for (int i = 0; i < k * n; ++i) {
+/// Reading matrix.
+    for (int i = 0; i < k * n; ++i)
         scanf("%d%d", matrix + 2 * i, matrix + 2 * i + 1);
-    }
 
     thread_pool_t pool;
     try(thread_pool_init(&pool, 4));
 
-
+/// Ordering n * k matrix calculations on the pool.
     for (int i = 0; i < k; ++i) {
         for (int j = 0; j < n; ++j) {
             try(async(&pool, &res[(i * n + j)],
@@ -45,6 +47,7 @@ int main() {
         }
     }
 
+/// Summing rows.
     for (int i = 0; i < k; ++i) {
         int sum = 0;
         for (int j = 0; j < n; ++j) {
@@ -52,6 +55,10 @@ int main() {
         }
         printf("%d\n", sum);
     }
+
+    thread_pool_destroy(&pool);
+    free(matrix);
+    free(res);
 
     return 0;
 }
