@@ -5,8 +5,6 @@
 #include "err.h"
 #include "vector.h"
 
-// TODO: komentarze
-// TODO: obsługa errorów
 // TODO: P1
 // TODO: P7
 // TODO: P12
