@@ -1,22 +1,22 @@
-#ifndef __VECTOR_H__
-#define __VECTOR_H__
+#ifndef VECTOR_H
+#define VECTOR_H
 
 #include <stdbool.h>
 
-/// Vector struct - a dynamically allocated array of void pointers.
-typedef struct Vector {
-    int maxSize; ///< Allocated memory size.
-    int size; ///< Vector length.
+/// vector_t struct - a dynamically allocated array of void pointers.
+typedef struct vector_t {
+    int max_size; ///< Allocated memory size.
+    int size; ///< vector length.
     void **data; ///< Pointer to array of elements.
-} Vector;
+} vector_t;
 
 /// Adds new element at the end of a vector. Extends it if necessary.
-int pushBack(Vector *vector, void *ptr);
+int push_back(vector_t *vector, void *ptr);
 
 /// Deletes and returns the last element from a vector.
-void *popBack(Vector *vector);
+void *pop_back(vector_t *vector);
 
 /// Deletes an element from a vector.
-void deleteElementFromVector(Vector *vector, void *ptr);
+void delete_element_from_vector(vector_t *vector, void *ptr);
 
-#endif /* __VECTOR_H__ */
+#endif //VECTOR_H

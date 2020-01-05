@@ -14,7 +14,7 @@
 static int received_SIGINT = 0;
 
 /// Vector of all pools.
-Vector pools;
+vector_t pools;
 
 /// Bool checking if signal handling was already inited.
 static bool inited = false;
@@ -87,7 +87,7 @@ int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
     for (size_t i = 0; i < pool->size; ++i)
         try(pthread_create(&pool->threads[i], &pool->attr, worker, pool));
 
-    try(pushBack(&pools, pool));
+    try(push_back(&pools, pool));
 
     return 0;
 }
@@ -95,7 +95,7 @@ int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
 /// Destroys a pool.
 void thread_pool_destroy(struct thread_pool *pool) {
     pool->end = 1;
-    deleteElementFromVector(&pools, pool);
+    delete_element_from_vector(&pools, pool);
 
     for (size_t i = 0; i < pool->size; ++i)
         try(pthread_cond_signal(&pool->for_task));
