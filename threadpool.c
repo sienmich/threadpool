@@ -2,23 +2,37 @@
 
 #include "threadpool.h"
 #include "err.h"
+#include "vector.h"
+
+#include <signal.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <memory.h>
 
 // TODO: komentarze
 // TODO: obsługa errorów
-// TODO: obsługa "po otrzymaniu sygnału (SIGINT)"
-// TODO: czy destroy powinien czekać na zakończenie zadań?
+// TODO: P1
+// TODO: P7
+// TODO: P11
+// TODO: P12
+// TODO: P22
+// TODO: P23
+// TODO: P24
+// TODO: P26
 
-void *worker(void *data) {
+static int received_SIGINT = 0;
+
+static void *worker(void *data) {
     thread_pool_t *pool = data;
-    while (!pool->end) {
+    while (1) {
         try(pthread_mutex_lock(&pool->mutex));
 
-        while (queue_empty(&pool->tasks) && !pool->end)
-            try(pthread_cond_wait(&pool->for_task, &pool->mutex));
-
-        if (pool->end) {
-            try(pthread_mutex_unlock(&pool->mutex));
-            return 0;
+        while (queue_empty(&pool->tasks)) {
+            if (received_SIGINT || pool->end) {
+                try(pthread_mutex_unlock(&pool->mutex));
+                return 0;
+            } else
+                try(pthread_cond_wait(&pool->for_task, &pool->mutex));
         }
 
         runnable_t my_task = queue_get(&pool->tasks);
@@ -30,7 +44,37 @@ void *worker(void *data) {
     return 0;
 }
 
+Vector pools;
+
+void process_SIGINT(int signo __attribute__((unused))) {
+    received_SIGINT = 1;
+
+    while (pools.size) {
+        thread_pool_t *pool = pools.data[0];
+        thread_pool_destroy(pool);
+    }
+}
+
+
+static bool inited = false;
+
+static void setup_signal() {
+    sigset_t block_mask;
+    sigemptyset(&block_mask);
+    sigaddset(&block_mask, SIGINT);
+
+    struct sigaction action = {
+            .sa_handler = process_SIGINT,
+            .sa_mask = block_mask,
+            .sa_flags = 0};
+
+    try(sigaction(SIGINT, &action, 0));
+    inited = true;
+}
+
 int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
+    if (!inited)
+        setup_signal();
 
     try(pthread_mutex_init(&pool->mutex, 0));
     try(pthread_cond_init(&pool->for_task, 0));
@@ -48,21 +92,20 @@ int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
     for (size_t i = 0; i < pool->size; ++i)
         try(pthread_create(&pool->threads[i], &pool->attr, worker, pool));
 
+    try(pushBack(&pools, pool));
+
     return 0;
 }
 
 void thread_pool_destroy(struct thread_pool *pool) {
     pool->end = 1;
+    deleteElementFromVector(&pools, pool);
 
     for (size_t i = 0; i < pool->size; ++i)
         try(pthread_cond_signal(&pool->for_task));
 
     for (size_t i = 0; i < pool->size; ++i)
         try(pthread_join(pool->threads[i], NULL));
-
-//    for (size_t i = 0; i < pool->size; ++i)
-//        if ((err = pthread_cancel(pool->threads[i])) != 0)
-//            sys_err (err, "pthread_cancel failed");
 
     try(pthread_cond_destroy(&pool->for_task));
     try(pthread_mutex_destroy(&pool->mutex));

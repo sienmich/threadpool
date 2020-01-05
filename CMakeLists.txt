@@ -16,7 +16,7 @@ macro (add_executable _name)
 endmacro()
 
 include_directories(include)
-add_library(asyncc STATIC err.c threadpool.c future.c queue.h queue.c runnable.h)
+add_library(asyncc STATIC err.c threadpool.c future.c queue.h queue.c vector.c runnable.h)
 add_executable(macierz macierz.c)
 add_executable(silnia silnia.c)
 add_subdirectory(test)

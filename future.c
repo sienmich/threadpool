@@ -16,6 +16,7 @@ void eval_future(void *args, size_t argsz __attribute__((unused))) {
     try(pthread_mutex_unlock(&future->mutex));
 }
 
+/// korzystajacy z bibklio musi potem zwalniac pamiec i czyscic
 int async(thread_pool_t *pool, future_t *future, callable_t callable) {
     future->res = NULL;
     future->callable = callable;

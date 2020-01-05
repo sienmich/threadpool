@@ -5,6 +5,12 @@
 #include "future.h"
 #include "err.h"
 
+#include <signal.h>
+#include <signal.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <memory.h>
+
 void *calculate(void * arg, size_t argsz, size_t *res_size) {
     // arg[0] = n!, arg[1] = n
     int *tmp = arg;
@@ -41,7 +47,10 @@ int main() {
 
     printf("%d\n", result[0]);
 
-    thread_pool_destroy(&pool);
+    printf("Wysyłam do siebie sygnał.\n");
+    try(kill(getpid(), SIGINT));
+
+//    thread_pool_destroy(&pool);
     free(res);
 
     return 0;
