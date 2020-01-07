@@ -5,11 +5,6 @@
 #include "err.h"
 #include "vector.h"
 
-// TODO: P1
-// TODO: P7
-// TODO: P12
-// TODO: P22
-
 /// Variable checking if SIGINT was received.
 static int received_SIGINT = 0;
 

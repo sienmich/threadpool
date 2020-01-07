@@ -31,7 +31,7 @@ int main() {
     future_t *futures;
     try_ptr(futures = malloc(sizeof(future_t) * n));
 
-/// sil[0] = k!, sil[1] = k. Initially k = 0.
+/// fac[0] = k!, fac[1] = k. Initially k = 0.
     int fac[2] = {1, 0};
 
 /// Creating first future variable.

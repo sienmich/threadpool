@@ -2,9 +2,7 @@
 #include <stdlib.h>
 
 #include "threadpool.h"
-#include "future.h"
 #include "err.h"
-
 
 int *sums;
 pthread_mutex_t *mutex;
