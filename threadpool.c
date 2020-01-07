@@ -54,8 +54,9 @@ static void *worker(void *data) {
             if (received_SIGINT || pool->end) {
                 try(pthread_mutex_unlock(&pool->mutex));
                 return 0;
-            } else
+            } else {
                 try(pthread_cond_wait(&pool->for_task, &pool->mutex));
+            }
         }
 
         runnable_t my_task = queue_get(&pool->tasks);

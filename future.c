@@ -33,6 +33,11 @@ int async(thread_pool_t *pool, future_t *future, callable_t callable) {
     return 0;
 }
 
+static void future_destroy(future_t *future) {
+    try(pthread_mutex_destroy(&future->mutex));
+    try(pthread_cond_destroy(&future->for_res));
+}
+
 /// Helper struct that stores data necessary for map function.
 struct map_args {
     future_t *from;
@@ -75,6 +80,8 @@ void *await(future_t *future) {
         try(pthread_cond_wait(&future->for_res, &future->mutex));
 
     try(pthread_mutex_unlock(&future->mutex));
-
-    return future->res;
+    
+    void *res = future->res;
+    future_destroy(future);
+    return res;
 }

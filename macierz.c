@@ -5,32 +5,44 @@
 #include "future.h"
 #include "err.h"
 
-/// Function that sleeps arg[1] ms and returns &arg[0].
-void *calculate(void *arg, size_t args __attribute__((unused)), size_t *res_size) {
-    *res_size = sizeof(int);
 
-    int ms = ((int *) arg)[1];
+int *sums;
+pthread_mutex_t *mutex;
+
+/// Function that sleeps arg[1] ms and increments sums[arg[2]] by arg[0].
+void calculate(void *arg, size_t args __attribute__((unused))) {
+    int *a = arg;
+    int ms = a[1];
     int s = ms / 1000;
     ms %= 1000;
 
     try(nanosleep((const struct timespec[]){{s, 1000000L * ms}}, NULL));
 
-    return &arg[0];
+    try(pthread_mutex_lock(&mutex[a[2]]));
+
+    sums[a[2]] += a[0];
+
+    try(pthread_mutex_unlock(&mutex[a[2]]));
 }
 
 int main() {
     int *matrix;
-    future_t *res;
     int k, n;
 
     scanf("%d%d", &k, &n);
 
-    try_ptr(matrix = malloc(sizeof(int) * 2 * k * n));
-    try_ptr(res = malloc(sizeof(future_t) * k * n));
+    try_ptr(matrix = malloc(sizeof(int) * 3 * k * n));
+    try_ptr(sums = malloc(sizeof(int) * k));
+    try_ptr(mutex = malloc(sizeof(pthread_mutex_t) * k));
+
+    for (int i = 0; i < k; ++i) {
+        sums[i] = 0;
+        try(pthread_mutex_init(&mutex[i], 0));    
+    }
 
 /// Reading matrix.
     for (int i = 0; i < k * n; ++i)
-        scanf("%d%d", matrix + 2 * i, matrix + 2 * i + 1);
+        scanf("%d%d", matrix + 3 * i, matrix + 3 * i + 1);
 
     thread_pool_t pool;
     try(thread_pool_init(&pool, 4));
@@ -38,27 +50,29 @@ int main() {
 /// Ordering n * k matrix calculations on the pool.
     for (int i = 0; i < k; ++i) {
         for (int j = 0; j < n; ++j) {
-            try(async(&pool, &res[(i * n + j)],
-                      (callable_t) {
-                              .arg = &matrix[2 * (i * n + j)],
-                              .argsz = sizeof(int) * 2,
+            matrix[3 * (i * n + j) + 2] = i;
+            try(defer(&pool, (runnable_t) {
+                              .arg = &matrix[3 * (i * n + j)],
+                              .argsz = sizeof(int) * 3,
                               .function = calculate}
             ));
         }
     }
 
-/// Summing rows.
+    thread_pool_destroy(&pool);
+
+/// Printing sums.
     for (int i = 0; i < k; ++i) {
-        int sum = 0;
-        for (int j = 0; j < n; ++j) {
-            sum += *(int *)await(&res[(i * n + j)]);
-        }
-        printf("%d\n", sum);
+        printf("%d\n", sums[i]);
     }
 
-    thread_pool_destroy(&pool);
+    for (int i = 0; i < k; ++i) {
+        try(pthread_mutex_destroy(&mutex[i]));    
+    }
+    
     free(matrix);
-    free(res);
+    free(sums);
+    free(mutex);
 
     return 0;
 }

@@ -7,3 +7,11 @@ cp CMakeLists.txt ms406340/CMakeLists.txt
 cp -r test ms406340/test
 tar -czf ms406340.tar.gz ms406340
 rm -r ms406340
+
+tar -xf ms406340.tar.gz
+rm -r build
+mkdir build && cd build
+cmake ../ms406340
+make
+make test
+cd ..
