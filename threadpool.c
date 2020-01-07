@@ -90,7 +90,10 @@ int thread_pool_init(thread_pool_t *pool, size_t num_threads) {
 
 /// Destroys a pool.
 void thread_pool_destroy(struct thread_pool *pool) {
+    try(pthread_mutex_lock(&pool->mutex));
     pool->end = 1;
+    try(pthread_mutex_unlock(&pool->mutex));
+
     delete_element_from_vector(&pools, pool);
 
     for (size_t i = 0; i < pool->size; ++i)
