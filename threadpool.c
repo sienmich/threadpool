@@ -9,7 +9,7 @@
 static int received_SIGINT = 0;
 
 /// Vector of all pools.
-vector_t pools;
+static vector_t pools;
 
 /// Bool checking if signal handling was already inited.
 static bool inited = false;
